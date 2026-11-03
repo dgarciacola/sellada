@@ -1,0 +1,18 @@
+# Java / Spring Boot
+backend/target/
+backend/.mvn/wrapper/*.jar
+*.class
+# Node / Angular
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+# IDE y sistema
+.idea/
+.vscode/
+*.iml
+.DS_Store
+# Secretos y entorno (nunca se suben)
+.env
+*.env.local
+*.pem
+*.p12
