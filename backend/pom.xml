@@ -1,109 +1,259 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<!--
+	pom.xml del backend de Sellada.
+	Define de qué depende el proyecto, cómo se compila y cómo se empaqueta.
+	Comandos habituales (desde la carpeta backend/):
+	  ./mvnw spring-boot:run   arranca la aplicación
+	  ./mvnw test              ejecuta los tests
+	  ./mvnw package           genera el jar ejecutable en target/
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
 	<modelVersion>4.0.0</modelVersion>
+
+	<!--
+		Parent: spring-boot-starter-parent fija las versiones compatibles de todas
+		las dependencias de Spring Boot. Por eso no escribimos <version> en ellas.
+		La versión 4.1.2 es la usada en el proyecto. ADR-001 debe actualizarse para reflejarla.
+	-->
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>4.1.2</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/> <!-- Busca el parent en el repositorio de Maven, no en una carpeta local -->
 	</parent>
+
 	<groupId>com.sellada</groupId>
 	<artifactId>backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
+	<name>sellada-backend</name>
+	<description>Backend de Sellada, sistema de facturación verificable (educativo, no certificado)</description>
+
 	<properties>
+		<!-- Versión de Java del proyecto (ADR-001: Java 21) -->
 		<java.version>21</java.version>
 	</properties>
+
 	<dependencies>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-actuator</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-flyway</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-validation</artifactId>
-		</dependency>
+
+		<!--
+			=====================================================================
+			BLOQUE 1: APLICACIÓN
+			Dependencias que forman parte del código que se ejecuta en producción.
+			=====================================================================
+		-->
+
+		<!--
+			spring-boot-starter-webmvc
+			Funcionalidad: API REST con Spring MVC y servidor Tomcat embebido.
+			Uso: anotaciones @RestController, @GetMapping, @PostMapping, etc.
+			Es lo que hace que la aplicación escuche peticiones HTTP en el puerto 8080.
+		-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
+
+		<!--
+			spring-boot-starter-data-jpa
+			Funcionalidad: persistencia con JPA (Hibernate), Spring Data y pool de conexiones HikariCP.
+			Uso: entidades con @Entity y repositorios que extienden JpaRepository.
+			Incluye también el control de transacciones con @Transactional.
+		-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<!--
+			spring-boot-starter-flyway
+			Funcionalidad: ejecuta las migraciones de base de datos al arrancar la aplicación.
+			Uso: los scripts SQL van en src/main/resources/db/migration (V1__..., V2__...).
+			Garantiza que el esquema de la base de datos evoluciona de forma versionada.
+		-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-flyway</artifactId>
+		</dependency>
+
+		<!--
+			flyway-database-postgresql
+			Funcionalidad: soporte específico de Flyway para PostgreSQL.
+			Uso: desde Flyway 10 el soporte de cada base de datos va en un módulo aparte.
+			Sin él, las migraciones no arrancan contra PostgreSQL 16.
+		-->
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
 
+		<!--
+			spring-boot-starter-security
+			Funcionalidad: autenticación y autorización.
+			Uso: por defecto protege todos los endpoints y genera una contraseña temporal al arrancar.
+			La configuración real (JWT, roles, reglas por ruta) llegará con ADR-004.
+		-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+
+		<!--
+			spring-boot-starter-validation
+			Funcionalidad: validación de datos de entrada con Bean Validation (Jakarta).
+			Uso: anotaciones como @NotBlank, @Positive o @Valid sobre los DTOs de las peticiones.
+		-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
+		<!--
+			spring-boot-starter-actuator
+			Funcionalidad: endpoints de operación y monitorización.
+			Uso: GET /actuator/health indica si la aplicación y la base de datos responden.
+			Lo usaremos también en el healthcheck del despliegue.
+		-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
+		<!--
+			=====================================================================
+			BLOQUE 2: EJECUCIÓN (solo en tiempo de ejecución, no en el código)
+			=====================================================================
+		-->
+
+		<!--
+			postgresql (driver JDBC)
+			Funcionalidad: el driver que permite a Java hablar con PostgreSQL.
+			Uso: no lo importamos en el código. Spring lo carga al abrir la conexión.
+			scope runtime: el compilador no lo necesita, solo el programa en ejecución.
+		-->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!--
+			spring-boot-devtools
+			Funcionalidad: reinicia la aplicación automáticamente al cambiar código.
+			Uso: solo en desarrollo. optional=true evita que se propague a otros proyectos
+			que dependan de este, y Spring Boot lo excluye del jar final.
+		-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
 			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<scope>runtime</scope>
-		</dependency>
+
+		<!--
+			=====================================================================
+			BLOQUE 3: TESTS (scope test: no se incluyen en el jar de producción)
+			Cada starter-*-test añade las utilidades de test de su módulo
+			(MockMvc, @DataJpaTest, @WebMvcTest, etc.) sin tener que buscarlas una a una.
+			=====================================================================
+		-->
+
+		<!-- Tests de Actuator (endpoints de health y métricas) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- Tests de JPA: @DataJpaTest, repositorios contra una base de datos de prueba -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- Tests de Flyway: comprobar que las migraciones se aplican correctamente -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-flyway-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- Tests de seguridad: @WithMockUser y pruebas de autorización por rol -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- Tests de validación: comprobar que las restricciones de los DTOs se cumplen -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- Tests de capa web: @WebMvcTest y MockMvc para probar controladores sin arrancar todo -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!--
+			=====================================================================
+			BLOQUE 4: TESTCONTAINERS (PostgreSQL real en los tests)
+			Levanta un contenedor PostgreSQL 16 desechable durante los tests.
+			Sustituye a la base de datos local: los tests no dependen de tu Mac.
+			=====================================================================
+		-->
+
+		<!--
+			spring-boot-testcontainers
+			Funcionalidad: integración de Testcontainers con Spring Boot.
+			Uso: habilita la anotación @ServiceConnection, que conecta la aplicación
+			con el contenedor sin configurar URLs ni contraseñas a mano.
+		-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-testcontainers</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!--
+			testcontainers-postgresql
+			Funcionalidad: define el contenedor de PostgreSQL para Testcontainers.
+			Uso: clase PostgreSQLContainer dentro de los tests.
+		-->
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers-postgresql</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!--
+			testcontainers-junit-jupiter
+			Funcionalidad: integra el ciclo de vida de los contenedores con JUnit 5.
+			Uso: @Testcontainers en la clase de test y @Container sobre el contenedor.
+			Arranca el contenedor antes de los tests y lo destruye al terminar.
+		-->
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers-junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
 		<plugins>
+			<!--
+				spring-boot-maven-plugin
+				Funcionalidad: empaqueta la aplicación como jar ejecutable (con Tomcat dentro)
+				y añade el objetivo spring-boot:run que usamos para arrancarla en desarrollo.
+			-->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
