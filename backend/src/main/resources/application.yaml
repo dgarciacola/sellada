@@ -1,0 +1,12 @@
+spring: # Raiz de todas las propiedades de Spring Boot, todo lo que cuelga de aqui es spring.*
+  application: # Nombre lógico de la aplicación, sirve para logs y Actuator. No afecta a la bd
+    name: backend
+  datasource: # Agrupa la configuración de la conexion PostgreSQL
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${POSTGRES_DB:sellada} # Dirección de la base de datos. jdbc:postgresql:// indica el driver. 
+                                                                                       # El host y el puerto son variables con valor por defecto localhost:5432, que es donde Docker dejará PostgreSQL.
+    username: ${POSTGRES_USER:sellada} # Usuario de la base de datos.
+    password: ${POSTGRES_PASSWORD} # Contraseña sin valor por defecto. Si no la defines, el arranque falla. Es intencionado: nunca usaremos una contraseña escrita en el código.
+  jpa: # Configuración de Hibernate, la capa que traduce objetos Java a tablas SQL.
+    open-in-view: false # Desactiva un patrón que mantiene la conexión abierta durante toda la petición HTTP. Con false, las consultas se hacen en la capa de servicio, que es lo que queremos para controlar transacciones.
+    hibernate: # Hibernate comprueba que el esquema de la base de datos coincide con las entidades, pero no lo modifica. Las tablas las crea Flyway, con scripts versionados, como exige ADR-003. Si no coinciden, el arranque falla y lo vemos enseguida.
+      ddl-auto: validate

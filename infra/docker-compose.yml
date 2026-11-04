@@ -1,0 +1,24 @@
+name: sellada # Nombre del proyecto compose, agrupa contenedores, redes y volumenes con ese prefijo
+
+services: # Define un servicio llamado db
+  db:
+    image: postgres:16 # Imagen oficial de PostgreSQL 16
+    container_name: sellada-db # Nombre fijo del contenedor,m para encontrarlo con "docker ps"
+    environment:
+    # Crean la base de datos y el usuario la primera vez. :-sellada es el valor por defecto si la variable no existe.
+      POSTGRES_DB: ${POSTGRES_DB:-sellada}
+      POSTGRES_USER: ${POSTGRES_USER:-sellada}
+    # Igual que en el YAML de Spring: :? hace que Compose se detenga con ese mensaje si falta la variable. Nunca arranca con una contraseña por defecto.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en infra/.env}
+    ports: # Publica el puerto solo en tu máquina (127.0.0.1), no en la red Wi-Fi.
+      - "127.0.0.1:5432:5432"
+    volumes: # Monta el volumen sellada-db-data en la carpeta donde PostgreSQL guarda sus datos.
+      - sellada-db-data:/var/lib/postgresql/data
+    healthcheck: # Ejecuta pg_isready cada 5 segundos. Diez fallos seguidos marcan el contenedor como no sano.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sellada} -d ${POSTGRES_DB:-sellada}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes: # Declara el volumen con nombre, para que Docker lo gestione.
+  sellada-db-data:
