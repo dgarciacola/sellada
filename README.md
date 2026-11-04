@@ -17,7 +17,7 @@ En desarrollo. Plan de 10 semanas en sprints de 2 semanas.
 
 ## Stack previsto
 
-- Backend: Java 21, Spring Boot 3, PostgreSQL 16, Flyway
+- Backend: Java 21, Spring Boot 4.1.2, PostgreSQL 16, Flyway
 - Frontend: Angular, Angular Material
 - Infraestructura: Docker Compose, GitHub Actions
 
