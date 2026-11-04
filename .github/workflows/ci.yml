@@ -1,13 +1,39 @@
 name: CI
 
+# Cuándo se ejecuta: en cada push a main y en cada pull request.
 on:
   push:
+    branches: [main]
   pull_request:
 
+# Permisos mínimos: el workflow solo necesita leer el código.
+permissions:
+  contents: read
+
+# Si llega un push nuevo mientras otro workflow sigue corriendo en la misma rama,
+# se cancela el anterior para no gastar minutos.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  placeholder:
+  backend:
+    name: Backend (build y tests)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     steps:
+      # 1. Descarga el código del repositorio en el runner.
       - uses: actions/checkout@v4
-      - name: Comprobación inicial
-        run: echo "Pipeline pendiente de implementar en S4"
+
+      # 2. Instala Java 21 y guarda en caché las dependencias de Maven.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      # 3. Compila y ejecuta los tests (Testcontainers arranca PostgreSQL con el Docker del runner).
+      - name: Build y tests
+        working-directory: backend
+        run: ./mvnw -B -ntp verify
